@@ -11,19 +11,19 @@ Built to be as light as possible: plain Win32 (no WinForms/WPF), one background 
 | Icon | Meaning |
 | --- | --- |
 | Mouse / keyboard / battery outline, filled | The fill is the battery level. Hover for the exact percentage. |
-| Yellow | At or below your low-battery level (default 15%). |
-| Red | 5% or less. |
+| Green → yellow → orange → red | **Color by battery level** (on by default): green from 70%, yellow at 40%, orange at 20%, red at 5%, blended in between. |
+| White with yellow / red | With **Color by battery level** off: yellow at or below your low-battery level (default 15%), red at 5% or less. |
 | Lightning bolt | Charging. |
 | Moon | The mouse is asleep and isn't answering (last known level shown). |
 | Crossed out | Offline, or no supported device found. |
 
-**Show percentage on icons** replaces the glyph with the number (green while charging).
+**Show percentage on icons** replaces the glyph with the number (same colours; with level colours off, green while charging).
 
 New tray icons start in the overflow (^). Drag them onto the taskbar, or turn them on in *Settings > Personalization > Taskbar > Other system tray icons*. Each device keeps the same icon ID, so Windows remembers your choice.
 
 ## Menu
 
-Right- or left-click any icon: device list with levels, **Show percentage on icons**, **Battery alerts** (low, critical and fully-charged notifications), **Low battery level** (10–25%), **Start with Windows**, **Refresh now**, **Exit**.
+Right- or left-click any icon: device list with levels, **Show percentage on icons**, **Color by battery level**, **Battery alerts** (low, critical and fully-charged notifications), **Low battery level** (10–25%), **Start with Windows**, **Refresh now**, **Exit**.
 
 ## Supported devices
 

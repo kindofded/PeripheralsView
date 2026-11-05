@@ -10,7 +10,7 @@ alwaysApply: true
 - Overlapped I/O: buffers and `NativeOverlapped` live on the stack, so always wait for completion (cancel + `GetOverlappedResult(wait: true)`) before returning.
 - New device family: implement `IBatteryDevice` (stable `Id`, `Read()` returns null when not a battery device), add detection to `DeviceMonitor.Scan()`.
 - New setting: property + `Load` + `Save` in `Settings.cs`, then a menu item in `TrayApp.ShowMenu`.
-- Colours come from the taskbar theme (`SystemUsesLightTheme`); Windows 11 caution/critical/success colours for low/critical/charging.
+- Colours only from `Palette` (dark/light variant chosen by `SystemUsesLightTheme`); never hardcode them elsewhere.
 - Comments only for constraints the code can't show (protocol quirks, Windows quirks). Match surrounding style.
 
 # Build & run (from the repo root)

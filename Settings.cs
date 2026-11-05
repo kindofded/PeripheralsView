@@ -11,6 +11,7 @@ internal sealed class Settings
     public static readonly int[] LowLevels = [10, 15, 20, 25];
 
     public bool ShowPercent { get; set; }
+    public bool ColorByLevel { get; set; } = true;
     public bool Alerts { get; set; } = true;
     public int LowLevel { get; set; } = 15;
 
@@ -22,6 +23,7 @@ internal sealed class Settings
             return settings;
 
         settings.ShowPercent = GetBool(key, nameof(ShowPercent), settings.ShowPercent);
+        settings.ColorByLevel = GetBool(key, nameof(ColorByLevel), settings.ColorByLevel);
         settings.Alerts = GetBool(key, nameof(Alerts), settings.Alerts);
         settings.LowLevel = GetInt(key, nameof(LowLevel), settings.LowLevel);
         return settings;
@@ -31,6 +33,7 @@ internal sealed class Settings
     {
         using var key = Registry.CurrentUser.CreateSubKey(KeyPath);
         key.SetValue(nameof(ShowPercent), ShowPercent ? 1 : 0, RegistryValueKind.DWord);
+        key.SetValue(nameof(ColorByLevel), ColorByLevel ? 1 : 0, RegistryValueKind.DWord);
         key.SetValue(nameof(Alerts), Alerts ? 1 : 0, RegistryValueKind.DWord);
         key.SetValue(nameof(LowLevel), LowLevel, RegistryValueKind.DWord);
     }

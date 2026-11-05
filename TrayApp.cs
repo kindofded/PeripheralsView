@@ -206,19 +206,22 @@ internal sealed unsafe class TrayApp : IDisposable
             _ => device.Charging ? Badge.Charging : Badge.None,
         };
         uint color = NormalColor;
-        if (device.State != DeviceState.Offline && device.Level >= 0 && !device.Charging)
+        bool known = device.State != DeviceState.Offline && device.Level >= 0;
+        if (known && _settings.ColorByLevel)
+            color = Palette.ForLevel(device.Level, _lightTaskbar);
+        else if (known && !device.Charging)
         {
             if (device.Level <= 5)
-                color = _lightTaskbar ? 0xFFC42B1C : 0xFFFF99A4;
+                color = Palette.Critical(_lightTaskbar);
             else if (device.Level <= _settings.LowLevel)
-                color = _lightTaskbar ? 0xFF9D5D00 : 0xFFFCE100;
+                color = Palette.Low(_lightTaskbar);
         }
-        else if (device.Charging && _settings.ShowPercent)
-            color = _lightTaskbar ? 0xFF0F7B0F : 0xFF6CCB5F;
+        else if (known && _settings.ShowPercent)
+            color = Palette.Success(_lightTaskbar);
         return new IconSpec(device.Kind, device.Level, badge, color, _settings.ShowPercent, _iconSize);
     }
 
-    private uint NormalColor => _lightTaskbar ? 0xFF1C1C1C : 0xFFFFFFFF;
+    private uint NormalColor => Palette.Normal(_lightTaskbar);
 
     private void SetIcon(string key, in IconSpec spec, string tip)
     {
@@ -348,6 +351,12 @@ internal sealed unsafe class TrayApp : IDisposable
             _settings.Save();
             UpdateIcons();
         }, _settings.ShowPercent);
+        menu.Add("Color by battery level", () =>
+        {
+            _settings.ColorByLevel = !_settings.ColorByLevel;
+            _settings.Save();
+            UpdateIcons();
+        }, _settings.ColorByLevel);
         menu.Add("Battery alerts", () =>
         {
             _settings.Alerts = !_settings.Alerts;
