@@ -1,0 +1,29 @@
+---
+description: What Peripherals View is, how it's structured, and how it behaves
+alwaysApply: true
+---
+
+# Peripherals View architecture
+
+A Windows tray app showing battery levels of wireless Razer mice and Logitech (HID++ 2.0) devices, one tray icon per device.
+C# / .NET 10 (`net10.0-windows`), **plain Win32 via P/Invoke – no WinForms/WPF**. All interop is `LibraryImport` with
+blittable/pointer signatures, so the code is NativeAOT-safe (`IsAotCompatible`).
+**Primary goal: minimal CPU and RAM.** Measured: ~7 MB private, ~30 ms CPU per 60 s poll, idle 0%. Keep it that way.
+
+## Files
+- `Program.cs` – CLI dispatch, single-instance mutex, unhandled-exception logging.
+- `TrayApp.cs` – hidden top-level window (gets `TaskbarCreated`/`WM_SETTINGCHANGE` broadcasts, which message-only windows don't), message loop, one `Shell_NotifyIcon` per device, alerts (balloon → toast), menu, theme/DPI.
+- `DeviceMonitor.cs` – one background thread: `Scan()` (enumerate HID, build devices) only when asked, `Read()` every device each poll, `Merge()` (dedupe by Id, best state wins, asleep keeps last level). Posts `WM_DEVICES` to the window.
+- `Razer.cs` – openrazer protocol: 91-byte feature report (report ID 0 + 90), class 0x07 / cmd 0x80 battery (0–255), 0x84 charging. Status 0x04 = mouse asleep. Transaction ID probed (0x1F, 0x3F, 0xFF) and cached. Picks the collection with `FeatureReportByteLength == 91`, `MI_00` first.
+- `Logitech.cs` – HID++ 2.0 long reports (0x11, 20 bytes) on usage 0xFF00/0x0002 (USB/receiver) or 0xFF43/0x0202 (Bluetooth). Discovery on first successful read: name/type (0x0005), battery feature (0x1004 → 0x1000 → 0x1001 voltage, Solaar curve). Receivers probe indexes 1–6; direct devices use 0xFF. Devices never seen online stay hidden.
+- `Hid.cs` – HID enumeration (`CM_Get_Device_Interface_List`), attributes/caps, feature reports, overlapped read/write with timeout.
+- `IconRenderer.cs` – icons drawn in code: SDF shapes on a 16-unit grid (mouse, keyboard keys, battery, bolt/moon/slash badges) or GDI grayscale text for numbers; straight-alpha 32-bpp HICON.
+- `PopupMenu.cs` – native Win32 menu (dark mode via uxtheme ordinals), excludes the taskbar rect. `Settings.cs` – `HKCU\Software\PeripheralsView` + Run key. `Cli.cs` – `status`, `diagnose`. `Log.cs` – `%LOCALAPPDATA%\PeripheralsView\errors.log`. `Native.cs` – P/Invoke.
+
+## Key behaviours (don't regress)
+- No timers while idle: the monitor thread blocks on an `AutoResetEvent` (60 s timeout). Rescan only on HID arrival/removal (`RegisterDeviceNotification`, debounced 1.5 s), resume (5 s), or "Refresh now".
+- Icons are re-rendered only when their `IconSpec` changes; `NIM_MODIFY` only when icon or tooltip changed.
+- Tray icon IDs are an FNV hash of the device Id (stable across restarts so Windows remembers "show on taskbar"). Placeholder (no devices) is ID 1.
+- "Fully charged" alerts only on the transition (first sighting initialises `Full` silently); low/critical alert once, reset with 5% hysteresis.
+- Icon size = `SM_CXSMICON` at the taskbar's DPI (`GetDpiForWindow(Shell_TrayWnd)`), recomputed on settings/display/DPI changes and `TaskbarCreated`.
+- Only Razer (1532) and Logitech (046D, PIDs 0xA/0xB/0xCxxx) collections are opened beyond a query; Logitech webcams/conference devices are excluded by PID.

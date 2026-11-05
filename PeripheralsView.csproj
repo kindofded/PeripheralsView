@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>PeripheralsView</AssemblyName>
+    <RootNamespace>PeripheralsView</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyTitle>Peripherals View</AssemblyTitle>
+    <Product>Peripherals View</Product>
+    <Version>0.1.0</Version>
+
+    <!-- Footprint tuning: no WinForms/WPF (plain Win32), workstation non-concurrent GC, no ICU, English-only resources.
+         Everything is AOT-safe, so PublishAot=true also works once the MSVC build tools are installed. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <TieredPGO>false</TieredPGO>
+  </PropertyGroup>
+
+</Project>

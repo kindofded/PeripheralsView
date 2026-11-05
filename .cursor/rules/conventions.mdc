@@ -1,0 +1,32 @@
+---
+description: Coding conventions, build/run, and how to verify changes in Peripherals View
+alwaysApply: true
+---
+
+# Conventions
+
+- No WinForms/WPF/System.Drawing. New Win32 calls go in `Native.cs` as `LibraryImport` with pointer/blittable types (keeps it AOT-safe; no `DllImport` marshalling).
+- Device reads never throw and never block the UI thread; anything that does I/O runs on the `DeviceMonitor` thread.
+- Overlapped I/O: buffers and `NativeOverlapped` live on the stack, so always wait for completion (cancel + `GetOverlappedResult(wait: true)`) before returning.
+- New device family: implement `IBatteryDevice` (stable `Id`, `Read()` returns null when not a battery device), add detection to `DeviceMonitor.Scan()`.
+- New setting: property + `Load` + `Save` in `Settings.cs`, then a menu item in `TrayApp.ShowMenu`.
+- Colours come from the taskbar theme (`SystemUsesLightTheme`); Windows 11 caution/critical/success colours for low/critical/charging.
+- Comments only for constraints the code can't show (protocol quirks, Windows quirks). Match surrounding style.
+
+# Build & run (from the repo root)
+
+```powershell
+dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish
+.\publish\PeripheralsView.exe
+```
+
+- Only one instance runs (mutex). Before publishing: `Get-Process PeripheralsView | Stop-Process` (exe is locked), then relaunch.
+- After building, run `dotnet build-server shutdown` (the compiler server otherwise sits at ~280 MB).
+- Protocol check without the tray: `.\publish\PeripheralsView.exe diagnose | Out-Host`.
+
+# Verifying changes
+
+- Tray screenshot: `CopyFromScreen` of the bottom-right corner, scaled ×3 nearest-neighbour. New icons land in the overflow; promote via `HKCU\Control Panel\NotifyIconSettings\<key>\IsPromoted = 1`.
+- Open the menu without clicking: `PostMessage(FindWindow("PeripheralsView.Tray"), WM_APP+1, MAKELONG(x, y), WM_CONTEXTMENU)`, screenshot, then send Esc.
+- Icon art: a throwaway console project under `C:\Users\MateoGuido\Repos\` that `<Compile Include>`s `IconRenderer.cs` (+ `Native.cs`, `Device.cs`) and writes a PNG contact sheet – test real code, not copies.
+- Resource usage: sample `(Get-Process PeripheralsView).TotalProcessorTime` in 2 s slices over ≥70 s (covers a poll) plus `PrivateMemorySize64`. Report CPU as % of one core and of the whole CPU.
