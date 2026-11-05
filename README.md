@@ -1,6 +1,6 @@
 # Peripherals View
 
-Shows the battery level of your wireless Razer mice and Logitech keyboards/mice in the Windows system tray – one icon per device. It talks to the devices directly: no Razer Synapse or Logitech G HUB needed.
+Shows the battery level of your wireless Razer mice, Logitech keyboards/mice and Bluetooth headphones/earbuds in the Windows system tray – one icon per device. It talks to the devices directly: no Razer Synapse or Logitech G HUB needed.
 
 Built to be as light as possible: plain Win32 (no WinForms/WPF), one background thread that sleeps between polls, ~7 MB private memory and effectively 0% CPU (≈30 ms of CPU time per minute-long poll cycle). The exe is ~240 KB.
 
@@ -10,7 +10,7 @@ Built to be as light as possible: plain Win32 (no WinForms/WPF), one background 
 
 | Icon | Meaning |
 | --- | --- |
-| Mouse / keyboard / battery outline, filled | The fill is the battery level. Hover for the exact percentage. |
+| Mouse / keyboard / headphones / battery outline, filled | The fill is the battery level. Hover for the exact percentage. |
 | Green → yellow → orange → red | **Color by battery level** (on by default): green from 70%, yellow at 40%, orange at 20%, red at 5%, blended in between. |
 | White with yellow / red | With **Color by battery level** off: yellow at or below your low-battery level (default 15%), red at 5% or less. |
 | Lightning bolt | Charging. |
@@ -29,6 +29,7 @@ Right- or left-click any icon: device list with levels, **Show percentage on ico
 
 - **Razer** – the wireless mice from openrazer's list (see `RazerModel` table in `Razer.cs`), on cable or receiver. Uses the 90-byte Razer feature report (class 0x07, commands 0x80 battery / 0x84 charging).
 - **Logitech** – any HID++ 2.0 device with a battery feature (0x1004 unified battery, 0x1000 battery status or 0x1001 battery voltage), over Bluetooth, USB cable or a Lightspeed/Unifying/Bolt receiver. Tested with a **G915** over Bluetooth (voltage-only: the percentage is estimated from the voltage with Solaar's discharge curve).
+- **Bluetooth headphones / earbuds** – any classic Bluetooth device whose battery Windows already shows in *Settings > Bluetooth & devices* (headsets report it over the Hands-Free profile). Read from Windows' device properties, so it doesn't open a connection and works alongside vendor apps. Tested with **Galaxy Buds Pro** (one combined level, not per bud; no charging state). A device appears once it's been seen connected, then shows as offline when disconnected.
 
 ## Command line
 

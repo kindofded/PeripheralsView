@@ -40,7 +40,7 @@ internal sealed class DeviceMonitor
                     _rescanRequested = false;
                     _devices = Scan();
                 }
-                Volatile.Write(ref _snapshot, Merge(_devices.Select(device => device.Read()), _lastLevels));
+                Volatile.Write(ref _snapshot, Merge(ReadAll(_devices), _lastLevels));
                 _updated();
             }
             catch (Exception ex)
@@ -86,6 +86,10 @@ internal sealed class DeviceMonitor
         }
         return devices;
     }
+
+    /// <summary>Reads the scanned HID devices plus the Windows-reported Bluetooth batteries (looked up fresh each time).</summary>
+    public static IEnumerable<DeviceStatus?> ReadAll(List<IBatteryDevice> devices) =>
+        devices.Select(device => device.Read()).Concat(BluetoothBattery.Scan().Select(device => device.Read()));
 
     private static bool IsInterface0(string path) => path.Contains("&mi_00", StringComparison.OrdinalIgnoreCase);
 

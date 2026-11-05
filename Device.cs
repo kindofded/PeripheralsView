@@ -4,6 +4,7 @@ internal enum DeviceKind
 {
     Mouse,
     Keyboard,
+    Headset,
     Other,
 }
 

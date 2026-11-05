@@ -438,6 +438,43 @@ internal static unsafe partial class Native
         public fixed ushort Rest[27];
     }
 
+    // ---------------------------------------------------------------- device nodes (PnP properties)
+
+    public const uint CM_GETIDLIST_FILTER_ENUMERATOR = 0x1;
+    public const uint CM_GETIDLIST_FILTER_PRESENT = 0x100;
+    public const uint DEVPROP_TYPE_BYTE = 0x03;
+    public const uint DEVPROP_TYPE_UINT32 = 0x07;
+    public const uint DEVPROP_TYPE_BOOLEAN = 0x11;
+    public const uint DEVPROP_TYPE_STRING = 0x12;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct DEVPROPKEY
+    {
+        public Guid fmtid;
+        public uint pid;
+
+        public DEVPROPKEY(string fmtid, uint pid)
+        {
+            this.fmtid = new Guid(fmtid);
+            this.pid = pid;
+        }
+    }
+
+    [LibraryImport("cfgmgr32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial uint CM_Get_Device_ID_List_SizeW(uint* length, string? filter, uint flags);
+
+    [LibraryImport("cfgmgr32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial uint CM_Get_Device_ID_ListW(string? filter, char* buffer, uint length, uint flags);
+
+    [LibraryImport("cfgmgr32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial uint CM_Locate_DevNodeW(uint* devInst, string deviceId, uint flags);
+
+    [LibraryImport("cfgmgr32.dll")]
+    public static partial uint CM_Get_Parent(uint* parent, uint devInst, uint flags);
+
+    [LibraryImport("cfgmgr32.dll")]
+    public static partial uint CM_Get_DevNode_PropertyW(uint devInst, DEVPROPKEY* key, uint* type, void* buffer, uint* size, uint flags);
+
     [LibraryImport("cfgmgr32.dll")]
     public static partial uint CM_Get_Device_Interface_List_SizeW(uint* length, Guid* interfaceClass, char* deviceId, uint flags);
 

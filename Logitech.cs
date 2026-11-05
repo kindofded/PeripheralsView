@@ -113,6 +113,7 @@ internal sealed class LogitechDevice : IBatteryDevice
                 {
                     0 or 2 => DeviceKind.Keyboard, // keyboard, numpad
                     3 or 4 or 5 => DeviceKind.Mouse, // mouse, touchpad, trackball
+                    8 => DeviceKind.Headset,
                     _ => DeviceKind.Other,
                 };
             }

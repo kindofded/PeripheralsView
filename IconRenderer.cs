@@ -60,6 +60,7 @@ internal static unsafe class IconRenderer
                 {
                     DeviceKind.Mouse => Mouse(px, py, level, unit),
                     DeviceKind.Keyboard => Keyboard(px, py, level, unit),
+                    DeviceKind.Headset => Headset(px, py, level, unit),
                     _ => Battery(px, py, level, unit),
                 };
 
@@ -113,6 +114,22 @@ internal static unsafe class IconRenderer
         float key = RoundRect(px, py, left + col * (keyW + gap) + keyW / 2, top + row * (keyH + gap) + keyH / 2, keyW / 2, keyH / 2, 0.3f);
         float right = left + level * 9.5f;
         return MathF.Max(a, Cover(MathF.Max(key, px - right), unit));
+    }
+
+    /// <summary>Headphones: the ear cups fill from the bottom like a liquid level.</summary>
+    private static float Headset(float px, float py, float level, float unit)
+    {
+        float band = MathF.Abs(Circle(px, py, 8, 9, 6.25f) + Stroke / 2) - Stroke / 2;
+        float a = Cover(MathF.Max(band, py - 8), unit); // stop at the cups' top edge
+        float top = 15.25f - Math.Max(level, 0) * 7.5f;
+        foreach (float cx in (ReadOnlySpan<float>)[3.5f, 12.5f])
+        {
+            float cup = RoundRect(px, py, cx, 11.5f, 2.75f, 3.75f, 1.5f);
+            a = MathF.Max(a, Cover(Ring(cup), unit));
+            if (level >= 0)
+                a = MathF.Max(a, Cover(MathF.Max(cup, top - py), unit));
+        }
+        return a;
     }
 
     private static float Battery(float px, float py, float level, float unit)

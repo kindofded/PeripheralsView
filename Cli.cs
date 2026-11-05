@@ -12,7 +12,7 @@ internal static class Cli
         switch (args[0].ToLowerInvariant())
         {
             case "status":
-                var statuses = DeviceMonitor.Merge(DeviceMonitor.Scan().Select(device => device.Read()));
+                var statuses = DeviceMonitor.Merge(DeviceMonitor.ReadAll(DeviceMonitor.Scan()));
                 if (statuses.Count == 0)
                     Console.WriteLine("No supported devices found.");
                 foreach (var status in statuses)
@@ -49,7 +49,7 @@ internal static class Cli
 
         Console.WriteLine();
         Console.WriteLine("Devices:");
-        foreach (var device in DeviceMonitor.Scan())
+        foreach (var device in DeviceMonitor.Scan().Concat<IBatteryDevice>(BluetoothBattery.Scan()))
         {
             var started = Environment.TickCount64;
             var status = device.Read();
