@@ -61,6 +61,7 @@ internal static unsafe class IconRenderer
                     DeviceKind.Mouse => Mouse(px, py, level, unit),
                     DeviceKind.Keyboard => Keyboard(px, py, level, unit),
                     DeviceKind.Headset => Headset(px, py, level, unit),
+                    DeviceKind.Earbuds => Earbuds(px, py, level, unit),
                     _ => Battery(px, py, level, unit),
                 };
 
@@ -128,6 +129,23 @@ internal static unsafe class IconRenderer
             a = MathF.Max(a, Cover(Ring(cup), unit));
             if (level >= 0)
                 a = MathF.Max(a, Cover(MathF.Max(cup, top - py), unit));
+        }
+        return a;
+    }
+
+    /// <summary>Two buds, round heads with stems hanging down and inwards; both fill from the bottom.</summary>
+    private static float Earbuds(float px, float py, float level, float unit)
+    {
+        float a = 0;
+        float top = 13.75f - Math.Max(level, 0) * 11.25f;
+        foreach (float side in (ReadOnlySpan<float>)[-1f, 1f])
+        {
+            float head = Circle(px, py, 8 + side * 3.9f, 5.4f, 2.9f);
+            float stem = Segment(px, py, 8 + side * 3.2f, 7.5f, 8 + side * 2.4f, 12.5f, 1.25f);
+            float bud = MathF.Min(head, stem);
+            a = MathF.Max(a, Cover(Ring(bud), unit));
+            if (level >= 0)
+                a = MathF.Max(a, Cover(MathF.Max(bud, top - py), unit));
         }
         return a;
     }

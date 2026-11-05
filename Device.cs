@@ -5,6 +5,7 @@ internal enum DeviceKind
     Mouse,
     Keyboard,
     Headset,
+    Earbuds,
     Other,
 }
 

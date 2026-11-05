@@ -58,7 +58,11 @@ internal sealed unsafe class BluetoothBattery : IBatteryDevice
                 continue;
             string name = GetString(device, FriendlyNameKey) ?? GetString(node, FriendlyNameKey) ?? "Bluetooth device";
             uint classOfDevice = TryGet(device, ClassOfDeviceKey, Native.DEVPROP_TYPE_UINT32, out uint cod) ? cod : 0;
-            found.Add(new BluetoothBattery(id, node, device, name, KindFromClass(classOfDevice)));
+            var kind = KindFromClass(classOfDevice);
+            // Bluetooth's class of device can't tell earbuds from over-ear headphones; the name usually can.
+            if (kind == DeviceKind.Headset && (name.Contains("bud", StringComparison.OrdinalIgnoreCase) || name.Contains("pod", StringComparison.OrdinalIgnoreCase)))
+                kind = DeviceKind.Earbuds;
+            found.Add(new BluetoothBattery(id, node, device, name, kind));
         }
         return found;
     }
