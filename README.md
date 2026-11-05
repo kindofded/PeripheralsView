@@ -4,7 +4,7 @@ Shows the battery level of your wireless Razer mice and Logitech keyboards/mice 
 
 Built to be as light as possible: plain Win32 (no WinForms/WPF), one background thread that sleeps between polls, ~7 MB private memory and effectively 0% CPU (≈30 ms of CPU time per minute-long poll cycle). The exe is ~240 KB.
 
-![Tray menu](docs/menu.png)
+![Tray icons](docs/tray.png) ![Percentage mode](docs/tray-percent.png)
 
 ## Icons
 
