@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Peripherals View architecture
 
-A Windows tray app showing battery levels of wireless Razer mice and Logitech (HID++ 2.0) devices, one tray icon per device.
+A Windows tray app showing battery levels of wireless Razer mice, Logitech (HID++ 2.0) and Dell receiver devices and Bluetooth headphones, one tray icon per device.
 C# / .NET 10 (`net10.0-windows`), **plain Win32 via P/Invoke – no WinForms/WPF**. All interop is `LibraryImport` with
 blittable/pointer signatures, so the code is NativeAOT-safe (`IsAotCompatible`).
 **Primary goal: minimal CPU and RAM.** Measured: ~7 MB private, ~30 ms CPU per 60 s poll, idle 0%. Keep it that way.
@@ -17,6 +17,7 @@ blittable/pointer signatures, so the code is NativeAOT-safe (`IsAotCompatible`).
 - `Razer.cs` – openrazer protocol: 91-byte feature report (report ID 0 + 90), class 0x07 / cmd 0x80 battery (0–255), 0x84 charging. Status 0x04 = mouse asleep. Transaction ID probed (0x1F, 0x3F, 0xFF) and cached. Picks the collection with `FeatureReportByteLength == 91`, `MI_00` first.
 - `Logitech.cs` – HID++ 2.0 long reports (0x11, 20 bytes) on usage 0xFF00/0x0002 (USB/receiver) or 0xFF43/0x0202 (Bluetooth). Discovery on first successful read: name/type (0x0005), battery feature (0x1004 → 0x1000 → 0x1001 voltage, Solaar curve). Receivers probe indexes 1–6; direct devices use 0xFF. Devices never seen online stay hidden.
 - `BluetoothBattery.cs` – classic Bluetooth devices with Windows' battery property (`{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2`, a byte on a BTHENUM service node such as Hands-Free). Name, class of device (→ kind; audio devices named "*bud*"/"*pod*" become Earbuds) and connected flag (`{83DA6326-97A6-4088-9453-A1923F573B29} 15`) come from the `BTHENUM\DEV_<address>` node, matched by address (it isn't the PnP parent). Listed fresh every poll (in-memory, sub-ms); shown only after being seen connected once.
+- `Dell.cs` – Dell Universal Receiver (413C:4503). Listen-only: the command collection (`MI_02` Col02) is held exclusively by Dell Display and Peripheral Manager (sharing violation), so one 64 KB-stack thread per receiver keeps an infinite overlapped read on the input-only 0xFF00/0x0000 collection (`Col01`, 32 bytes). `01 08 slot pct` = battery (sent on device wake), `01 06 slot 0|1` = link idle/active (every few s, ignored so icons don't flicker). Slot 1 = keyboard, 2 = mouse (KM5221W). A level change calls `DellReceiver.Changed` → `DeviceMonitor.Refresh()`. Listeners survive rescans (keyed by path) and exit when the read fails (unplugged). Slots stay hidden until their first report.
 - `Hid.cs` – HID enumeration (`CM_Get_Device_Interface_List`), attributes/caps, feature reports, overlapped read/write with timeout.
 - `IconRenderer.cs` – icons drawn in code: SDF shapes on a 16-unit grid (mouse, keyboard keys, headphones with filling cups, earbuds with stems, battery, bolt/moon/slash badges) or GDI grayscale text for numbers; straight-alpha 32-bpp HICON.
 - `Palette.cs` – icon colours (Windows 11 palette, dark/light taskbar variants); `ForLevel` blends red 5% → orange 20% → yellow 40% → green 70% ("Color by battery level", default on). Off = white, yellow ≤ low level, red ≤ 5%.
@@ -28,4 +29,4 @@ blittable/pointer signatures, so the code is NativeAOT-safe (`IsAotCompatible`).
 - Tray icon IDs are an FNV hash of the device Id (stable across restarts so Windows remembers "show on taskbar"). Placeholder (no devices) is ID 1.
 - "Fully charged" alerts only on the transition (first sighting initialises `Full` silently); low/critical alert once, reset with 5% hysteresis.
 - Icon size = `SM_CXSMICON` at the taskbar's DPI (`GetDpiForWindow(Shell_TrayWnd)`), recomputed on settings/display/DPI changes and `TaskbarCreated`.
-- Only Razer (1532) and Logitech (046D, PIDs 0xA/0xB/0xCxxx) collections are opened beyond a query; Logitech webcams/conference devices are excluded by PID.
+- Only Razer (1532), Logitech (046D, PIDs 0xA/0xB/0xCxxx) and the Dell receiver's notification collection (413C:4503) are opened beyond a query; Logitech webcams/conference devices are excluded by PID. Nothing is ever written to the Dell receiver.

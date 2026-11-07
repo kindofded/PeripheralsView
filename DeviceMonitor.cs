@@ -20,7 +20,11 @@ internal sealed class DeviceMonitor
 
     public IReadOnlyList<DeviceStatus> Snapshot => Volatile.Read(ref _snapshot);
 
-    public void Start() => new Thread(Run) { IsBackground = true, Name = "Device monitor" }.Start();
+    public void Start()
+    {
+        DellReceiver.Changed = () => Refresh();
+        new Thread(Run) { IsBackground = true, Name = "Device monitor" }.Start();
+    }
 
     public void Refresh(bool rescan = false)
     {
@@ -51,7 +55,7 @@ internal sealed class DeviceMonitor
         }
     }
 
-    /// <summary>Finds every supported device. Only Razer and Logitech collections are opened beyond a query.</summary>
+    /// <summary>Finds every supported device. Only Razer, Logitech and Dell collections are opened beyond a query.</summary>
     public static List<IBatteryDevice> Scan()
     {
         var devices = new List<IBatteryDevice>();
@@ -75,6 +79,10 @@ internal sealed class DeviceMonitor
                 using (var hid = HidDevice.Open(path, readWrite: false))
                     product = hid?.GetProductString();
                 devices.AddRange(LogitechDevice.Create(info, product));
+            }
+            else if (DellReceiver.IsNotificationCollection(info))
+            {
+                devices.AddRange(DellReceiver.Create(info));
             }
         }
 

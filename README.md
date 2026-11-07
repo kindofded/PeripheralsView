@@ -1,6 +1,6 @@
 # Peripherals View
 
-Shows the battery level of your wireless Razer mice, Logitech keyboards/mice and Bluetooth headphones/earbuds in the Windows system tray – one icon per device. It talks to the devices directly: no Razer Synapse or Logitech G HUB needed.
+Shows the battery level of your wireless Razer mice, Logitech and Dell keyboards/mice and Bluetooth headphones/earbuds in the Windows system tray – one icon per device. It talks to the devices directly: no Razer Synapse or Logitech G HUB needed.
 
 Built to be as light as possible: plain Win32 (no WinForms/WPF), one background thread that sleeps between polls, ~7 MB private memory and effectively 0% CPU (≈30 ms of CPU time per minute-long poll cycle). The exe is ~240 KB.
 
@@ -29,13 +29,14 @@ Right- or left-click any icon: device list with levels, **Show percentage on ico
 
 - **Razer** – the wireless mice from openrazer's list (see `RazerModel` table in `Razer.cs`), on cable or receiver. Uses the 90-byte Razer feature report (class 0x07, commands 0x80 battery / 0x84 charging).
 - **Logitech** – any HID++ 2.0 device with a battery feature (0x1004 unified battery, 0x1000 battery status or 0x1001 battery voltage), over Bluetooth, USB cable or a Lightspeed/Unifying/Bolt receiver. Tested with a **G915** over Bluetooth (voltage-only: the percentage is estimated from the voltage with Solaar's discharge curve).
+- **Dell Universal Receiver** (413C:4503) – e.g. the **KM5221W** set (KB500 keyboard + MS300 mouse), tested. Dell Display and Peripheral Manager keeps the receiver's command channel to itself, so the app only listens: the receiver announces a device's battery level when it wakes up. Icons appear after the first announcement (move the mouse / press a key after it has been idle for a few seconds). Nothing is sent to the receiver, so it works alongside Dell's software.
 - **Bluetooth headphones / earbuds** – any classic Bluetooth device whose battery Windows already shows in *Settings > Bluetooth & devices* (headsets report it over the Hands-Free profile). Read from Windows' device properties, so it doesn't open a connection and works alongside vendor apps. Tested with **Galaxy Buds Pro** (one combined level, not per bud; no charging state) and **Sony WH-1000XM4**. A device appears once it's been seen connected, then shows as offline when disconnected. Devices with "bud" or "pod" in their name get the earbuds icon; other Bluetooth audio devices get headphones.
 
 ## Command line
 
 ```powershell
 .\PeripheralsView.exe status   | Out-Host   # battery of each device
-.\PeripheralsView.exe diagnose | Out-Host   # every Razer/Logitech HID collection + protocol details
+.\PeripheralsView.exe diagnose | Out-Host   # every Razer/Logitech/Dell HID collection + protocol details
 ```
 
 It's a GUI exe, so PowerShell doesn't wait for it – pipe to `Out-Host` to get the output in order.

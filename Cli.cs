@@ -34,10 +34,10 @@ internal static class Cli
         Console.WriteLine($"Peripherals View {typeof(Cli).Assembly.GetName().Version}, {Environment.OSVersion}, .NET {Environment.Version}");
         Console.WriteLine($"Tray icon size {TrayApp.QueryIconSize()} px, settings HKCU\\Software\\PeripheralsView, log {Log.Folder}");
         Console.WriteLine();
-        Console.WriteLine("HID collections (Razer 1532, Logitech 046D):");
+        Console.WriteLine("HID collections (Razer 1532, Logitech 046D, Dell 413C):");
         foreach (string path in HidDevice.EnumeratePaths())
         {
-            if (HidDevice.Query(path) is not { } info || info.VendorId is not (RazerDevice.VendorId or LogitechDevice.VendorId))
+            if (HidDevice.Query(path) is not { } info || info.VendorId is not (RazerDevice.VendorId or LogitechDevice.VendorId or DellReceiver.VendorId))
                 continue;
             string? product;
             using (var hid = HidDevice.Open(path, readWrite: false))

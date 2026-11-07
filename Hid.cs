@@ -106,7 +106,7 @@ internal sealed unsafe class HidDevice : IDisposable
     /// <summary>Returns the bytes written, 0 on timeout, -1 on error.</summary>
     public int Write(Span<byte> report, int timeoutMs) => Transfer(write: true, report, timeoutMs);
 
-    /// <summary>Returns the bytes read, 0 on timeout, -1 on error.</summary>
+    /// <summary>Returns the bytes read, 0 on timeout, -1 on error. <see cref="Timeout.Infinite"/> waits for the next report.</summary>
     public int Read(Span<byte> buffer, int timeoutMs) => Transfer(write: false, buffer, timeoutMs);
 
     private int Transfer(bool write, Span<byte> buffer, int timeoutMs)
@@ -125,7 +125,8 @@ internal sealed unsafe class HidDevice : IDisposable
             {
                 if (Marshal.GetLastPInvokeError() != Native.ERROR_IO_PENDING)
                     return -1;
-                if (Native.WaitForSingleObject(_event, (uint)Math.Max(timeoutMs, 0)) != Native.WAIT_OBJECT_0)
+                uint wait = timeoutMs == Timeout.Infinite ? Native.INFINITE : (uint)Math.Max(timeoutMs, 0);
+                if (Native.WaitForSingleObject(_event, wait) != Native.WAIT_OBJECT_0)
                 {
                     // The buffer and OVERLAPPED live on this stack frame: wait for the cancellation to finish.
                     Native.CancelIoEx(_handle, &overlapped);

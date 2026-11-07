@@ -373,6 +373,7 @@ internal static unsafe partial class Native
     public const uint FILE_FLAG_OVERLAPPED = 0x40000000;
     public const int ERROR_IO_PENDING = 997;
     public const uint WAIT_OBJECT_0 = 0;
+    public const uint INFINITE = 0xFFFFFFFF;
     public static readonly nint INVALID_HANDLE_VALUE = -1;
 
     [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
